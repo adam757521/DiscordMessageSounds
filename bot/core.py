@@ -131,7 +131,7 @@ class SoundClient(discord.Client):
         self.play_sound_if_notifications_match(
             notifications,
             mentioned_in(me, message, suppress_roles, suppress_everyone),
-            message.is_system()
+            message.is_system(),
         )
 
     async def on_message(self, message):
@@ -163,7 +163,11 @@ class SoundClient(discord.Client):
                 if int(channel_override["channel_id"]) == message.channel.id:
                     return
 
-            self.play_sound(Sound.SYSTEM.value if message.is_system() else Sound.DM.value, SOUND_VOLUME, SOUND_FADE)
+            self.play_sound(
+                Sound.SYSTEM.value if message.is_system() else Sound.DM.value,
+                SOUND_VOLUME,
+                SOUND_FADE,
+            )
 
     async def on_connect(self):
         await self.change_presence(status=Account.AUTOMATIC_STATUS, afk=Account.AFK)

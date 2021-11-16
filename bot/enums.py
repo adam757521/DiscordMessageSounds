@@ -2,10 +2,7 @@ from enum import Enum
 
 from .customization import Sounds
 
-__all__ = (
-    "Sound",
-    "SOUND_PATH"
-)
+__all__ = ("Sound", "SOUND_PATH")
 
 SOUND_PATH = Sounds.SOUND_PATH
 
