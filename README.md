@@ -27,7 +27,6 @@ Note
 
 TODO
 ----
-- Incoming calls sounds
-- Sent message sound
+- None
 
 ### `If you like this project, please consider giving it a star! <3` ###
