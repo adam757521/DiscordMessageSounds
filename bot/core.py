@@ -4,10 +4,10 @@ import selfbotUtils
 from .utils import mentioned_in
 from .customization import Sounds, Notifications, Account
 from .sounds import async_play_sound
+from .enums import Sound
 
-__all__ = ("SoundClient", "SOUND_PATH", "SOUND_VOLUME", "SOUND_FADE")
+__all__ = ("SoundClient", "SOUND_VOLUME", "SOUND_FADE")
 
-SOUND_PATH = Sounds.SOUND_PATH
 SOUND_VOLUME = Sounds.VOLUME
 SOUND_FADE = Sounds.FADE
 
@@ -39,7 +39,7 @@ class SoundClient(discord.Client):
         self.loop.create_task(async_play_sound(self.loop, path, *args, **kwargs))
 
     def play_sound_if_notifications_match(
-        self, notifications: discord.NotificationLevel, mentioned: bool
+        self, notifications: discord.NotificationLevel, mentioned: bool, system: bool
     ) -> None:
         """
         Plays the sound that is needed.
@@ -47,6 +47,7 @@ class SoundClient(discord.Client):
 
         :param discord.NotificationLevel notifications: The notification level.
         :param bool mentioned: A bool representing if the user is mentioned.
+        :param bool system: A bool indicating if the message is sent by the system.
         :return: None
         :rtype: None
         """
@@ -56,7 +57,10 @@ class SoundClient(discord.Client):
             or notifications == discord.NotificationLevel.only_mentions
             and mentioned
         ):
-            sound = f"{SOUND_PATH}/ping.mp3" if mentioned else f"{SOUND_PATH}/guild.mp3"
+            sound = Sound.PING.value if mentioned else Sound.GUILD.value
+            if system:
+                sound = Sound.SYSTEM.value
+
             self.play_sound(sound, SOUND_VOLUME, SOUND_FADE)
 
     async def on_ready(self):
@@ -127,13 +131,17 @@ class SoundClient(discord.Client):
         self.play_sound_if_notifications_match(
             notifications,
             mentioned_in(me, message, suppress_roles, suppress_everyone),
+            message.is_system()
         )
 
     async def on_message(self, message):
-        if self.user == message.author and not Notifications.DEBUG:
-            return
-
         user_status = [s for s in self.guilds][0].get_member(self.user.id).status
+
+        if self.user == message.author:
+            if Notifications.SENT_MESSAGES:
+                self.play_sound(Sound.SENT.value, SOUND_VOLUME, SOUND_FADE)
+
+            return
 
         if (
             not Notifications.PLAY_NOTIFICATION_IN_DND
@@ -144,7 +152,18 @@ class SoundClient(discord.Client):
         if message.guild:
             await self.handle_guild_message(message)
         else:
-            self.play_sound(f"{SOUND_PATH}/dm.mp3", SOUND_VOLUME, SOUND_FADE)
+            settings = await self.client.http.request(
+                "PATCH",
+                f"/users/@me/guilds/@me/settings",
+                auth=True,
+                json={},
+            )
+
+            for channel_override in settings["channel_overrides"]:
+                if int(channel_override["channel_id"]) == message.channel.id:
+                    return
+
+            self.play_sound(Sound.SYSTEM.value if message.is_system() else Sound.DM.value, SOUND_VOLUME, SOUND_FADE)
 
     async def on_connect(self):
         await self.change_presence(status=Account.AUTOMATIC_STATUS, afk=Account.AFK)

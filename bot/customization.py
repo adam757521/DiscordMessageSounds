@@ -5,14 +5,12 @@ __all__ = ("Account", "Notifications", "Sounds")
 
 class Account:
     TOKEN = "ACCOUNT_TOKEN"  # Replace 'ACCOUNT_TOKEN' with your discord account token.
-    AUTOMATIC_STATUS = (
-        discord.Status.do_not_disturb
-    )  # To suppress the default notifications.
+    AUTOMATIC_STATUS = discord.Status.online
     AFK = True
 
 
 class Notifications:
-    DEBUG = False  # Messages sent by the account will not be filtered.
+    SENT_MESSAGES = True  # Sent messages will play a sound.
     GET_GUILD_NOTIFICATION_CONFIG = True
     # Represents if the bot will get the personal guild notification config or use the default one. (API call)
     PLAY_NOTIFICATION_IN_DND = (
