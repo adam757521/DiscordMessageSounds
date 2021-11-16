@@ -21,6 +21,10 @@ Installation
 - Run the bot.
 - Enjoy!
 
+Note
+----
+- I recommend disabling the default message sound in the discord settings.
+
 TODO
 ----
 - Incoming calls sounds
